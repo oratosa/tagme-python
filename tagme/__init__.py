@@ -29,6 +29,7 @@ WIKIPEDIA_URI_BASE = u"https://{}.wikipedia.org/wiki/{}"
 MAX_RELATEDNESS_PAIRS_PER_REQUEST = 100
 GCUBE_TOKEN = None
 HTML_PARSER = HTMLParser()
+DEFAULT_SWITCH_OFF = 'OFF'
 
 class Annotation(object):
     '''
@@ -187,7 +188,7 @@ def title_to_uri(entity_title, lang=DEFAULT_LANG):
 
 
 def annotate(text, gcube_token=None, lang=DEFAULT_LANG, api=DEFAULT_TAG_API,
-             long_text=DEFAULT_LONG_TEXT):
+             long_text=DEFAULT_LONG_TEXT, switch=DEFAULT_SWITCH_OFF):
     '''
     Annotate a text, linking it to Wikipedia entities.
     :param text: the text to annotate.
@@ -195,26 +196,34 @@ def annotate(text, gcube_token=None, lang=DEFAULT_LANG, api=DEFAULT_TAG_API,
     :param lang: the Wikipedia language.
     :param api: the API endpoint.
     :param long_text: long_text parameter (see TagMe documentation).
+    :param switch: switching on AnnotateResponse.
     '''
     payload = [("text", text.encode("utf-8")),
                ("long_text", long_text),
                ("lang", lang)]
     json_response = _issue_request(api, payload, gcube_token)
-    return AnnotateResponse(json_response) if json_response else None
+    if switch == DEFAULT_SWITCH_OFF:
+        return json_response if json_response else None
+    else:
+        return AnnotateResponse(json_response) if json_response else None
 
 
-def mentions(text, gcube_token=None, lang=DEFAULT_LANG, api=DEFAULT_SPOT_API):
+def mentions(text, gcube_token=None, lang=DEFAULT_LANG, api=DEFAULT_SPOT_API, switch=DEFAULT_SWITCH_OFF):
     '''
     Find possible mentions in a text, do not link them to any entity.
     :param text: the text where to find mentions.
     :param gcube_token: the authentication token provided by the D4Science infrastructure.
     :param lang: the Wikipedia language.
     :param api: the API endpoint.
+    :param switch: switching on MentionsResponse.
     '''
     payload = [("text", text.encode("utf-8")),
                ("lang", lang.encode("utf-8"))]
     json_response = _issue_request(api, payload, gcube_token)
-    return MentionsResponse(json_response) if json_response else None
+    if switch == DEFAULT_SWITCH_OFF:
+        return json_response if json_response else None
+    else:
+        return MentionsResponse(json_response) if json_response else None
 
 
 def relatedness_wid(wid_pairs, gcube_token=None, lang=DEFAULT_LANG, api=DEFAULT_REL_API):
